@@ -1,7 +1,8 @@
 (function(){
   const cfg = window.DELISHKI_SUPABASE || {};
   const SESSION_KEY = "delishki-supabase-session-v1";
-  const configured = !!(cfg.url && cfg.anonKey);
+  const baseUrl = String(cfg.url || "").trim().replace(/\/$/, "").replace(/\/(rest|auth|storage)\/v1\/?$/, "");
+  const configured = !!(baseUrl && cfg.anonKey);
 
   function getSession(){
     try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch { return null; }
@@ -14,7 +15,7 @@
     return {"apikey":cfg.anonKey,"Authorization":"Bearer "+(accessToken||cfg.anonKey),"Content-Type":"application/json"};
   }
   async function request(path, options={}){
-    const res = await fetch(cfg.url.replace(/\/$/,"")+path, options);
+    const res = await fetch(baseUrl+path, options);
     const text = await res.text();
     let data = null; try { data = text ? JSON.parse(text) : null; } catch { data = text; }
     if(!res.ok){ const msg = data?.msg || data?.message || data?.error_description || data?.error || "Ошибка облачного сервиса"; throw new Error(msg); }
